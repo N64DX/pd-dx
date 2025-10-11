@@ -93,7 +93,7 @@ void amgr_create(ALSynConfig *config)
 
 	adma_init();
 
-	osCreateMesgQueue(&g_AudioManager.audioReplyMsgQ, g_AudioManager.audioReplyMsgBuf, ARRAYCOUNT(g_AudioManager.audioFrameMsgBuf));
+	osCreateMesgQueue(&g_AudioManager.audioReplyMsgQ, g_AudioManager.audioReplyMsgBuf, ARRAYCOUNT(g_AudioManager.audioReplyMsgBuf));
 	osCreateMesgQueue(&g_AudioManager.audioFrameMsgQ, g_AudioManager.audioFrameMsgBuf, ARRAYCOUNT(g_AudioManager.audioFrameMsgBuf));
 
 	var800918ec = 2000;
@@ -224,11 +224,11 @@ void amgr_create(ALSynConfig *config)
 				config->params[i] = (s32 *) (IS4MB() ? params_bus1_4mb : params_bus1_8mb);
 			}
 		}
-	}
 
-	n_alInit(&g_AudioManager.g, config);
-	osc_build_linkedlist(0, 60);
-	osCreateThread(&g_AudioManager.thread, THREAD_AUDIO, &amgr_main, 0, g_AudioSp, THREADPRI_AUDIO);
+		n_alInit(&g_AudioManager.g, config);
+		osc_build_linkedlist(0, 60);
+		osCreateThread(&g_AudioManager.thread, THREAD_AUDIO, &amgr_main, 0, g_AudioSp, THREADPRI_AUDIO);
+	}
 }
 
 s8 g_AudioIsThreadRunning = false;
