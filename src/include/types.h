@@ -4037,13 +4037,13 @@ struct missionconfig {
 };
 
 struct mpsetup {
-	/*0x800acb88*/ char name[MAX_USERSTRING_LEN + 2];
-	/*0x800acb94*/ u32 options;
-	/*0x800acb98*/ u8 scenario;
-	/*0x800acb99*/ u8 stagenum;
-	/*0x800acb9a*/ u8 timelimit;
-	/*0x800acb9b*/ u8 scorelimit;
-	/*0x800acb9c*/ u16 teamscorelimit;
+	/*0x00*/ char name[MAX_USERSTRING_LEN + 2];
+	/*0x0c*/ u32 options;
+	/*0x10*/ u8 scenario;
+	/*0x11*/ u8 stagenum;
+	/*0x12*/ u8 timelimit;
+	/*0x13*/ u8 scorelimit;
+	/*0x14*/ u16 teamscorelimit;
 
 	/**
 	 * Each bit signifies that a player or sim is participating.
@@ -4052,10 +4052,10 @@ struct mpsetup {
 	 * Bits 0x0ff0 are for sims
 	 * Bits 0xf000 are probably not used
 	 */
-	/*0x800acb9e*/ u16 chrslots;
-	/*0x800acba0*/ u8 weapons[NUM_MPWEAPONSLOTS];
-	/*0x800acba6*/ u8 paused;
-	/*0x800acba8*/ struct fileguid fileguid;
+	/*0x16*/ u16 chrslots;
+	/*0x18*/ u8 weapons[NUM_MPWEAPONSLOTS];
+	/*0x1e*/ u8 pausemode;
+	/*0x20*/ struct fileguid fileguid;
 };
 
 struct bossfile {

@@ -568,7 +568,7 @@ Gfx *scenario_render_hud(Gfx *gdl)
 	if (g_Vars.normmplayerisrunning) {
 		if (g_MpScenarios[g_MpSetup.scenario].hudfunc) {
 #if VERSION >= VERSION_NTSC_1_0
-			if (g_MpSetup.paused != MPPAUSEMODE_GAMEOVER && g_NumReasonsToEndMpMatch == 0) {
+			if (g_MpSetup.pausemode != MPPAUSEMODE_GAMEOVER && g_NumReasonsToEndMpMatch == 0) {
 				gDPSetTextureFilter(gdl++, G_TF_POINT);
 				gDPSetColorDither(gdl++, G_CD_DISABLE);
 				gSPClearGeometryMode(gdl++, G_ZBUFFER);

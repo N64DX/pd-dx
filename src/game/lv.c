@@ -96,14 +96,20 @@
 #include "lib/vi.h"
 #include "types.h"
 
-struct sndstate *g_MiscSfxAudioHandles[3];
-u32 var800aa5bc;
-s32 g_MiscSfxActiveTypes[3];
+typedef enum {
+	MISCSFX_BOOSTHEARTBEAT,
+	MISCSFX_SLAYERROCKETHUM,
+	MISCSFX_SLAYERROCKETBEEP,
+	NUM_MISCSFX
+} MiscSfxType;
 
-u32 var80084010 = 0;
-bool var80084014 = false;
-f32 var80084018 = 1;
-u32 var8008401c = 0x00000001;
+struct sndstate *g_MiscSfxAudioHandles[NUM_MISCSFX];
+MiscSfxType g_MiscSfxActiveTypes[NUM_MISCSFX];
+
+s32 g_LvMpPausedPrev = 0;
+bool g_LvIsPaused = false;
+f32 var80084018 = 1; // unused
+s32 var8008401c = 1; // unused
 
 s32 g_Difficulty = DIFF_A;
 
@@ -111,36 +117,27 @@ s32 g_StageTimeElapsed60 = 0;
 s32 g_MpTimeLimit60 = SECSTOTIME60(60 * 10); // 10 minutes
 s32 g_MpScoreLimit = 10;
 s32 g_MpTeamScoreLimit = 20;
-struct sndstate *g_MiscAudioHandle = NULL;
+struct sndstate *g_MpAlarmAudioHandle = NULL;
 s32 g_NumReasonsToEndMpMatch = 0;
 f32 g_StageTimeElapsed1f = 0;
-bool var80084040 = true;
-
-u32 g_MiscSfxSounds[] = {
-	SFXNUM_05C8_HEARTBEAT,
-	SFXMAP_8068_SLAYER_WHIR,
-	SFXNUM_01C8_SLAYER_BEEP,
-};
-
-s32 var80084050 = 0;
-
-s16 g_FadeNumFrames = 0;
-f32 g_FadeFrac = -1;
-u32 g_FadePrevColour = 0;
-u32 g_FadeColour = 0;
-s16 g_FadeDelay = 0;
+bool g_LvSceneRenderingEnabled = true;
 
 void lv_fade_reset(void);
-void lv_check_pause_state_changed(void);
+void lv_handle_mppause_rumble(void);
 
-u32 get_var80084040(void)
+/**
+ * The scene rendering enabled functions are carried over from GoldenEye.
+ * In GE, scene rendering is disabled when paused because the watch takes up
+ * the full screen.
+ */
+bool lv_is_scene_rendering_enabled(void)
 {
-	return var80084040;
+	return g_LvSceneRenderingEnabled;
 }
 
-void set_var80084040(u32 value)
+void lv_set_scene_rendering_enabled(u32 value)
 {
-	var80084040 = value;
+	g_LvSceneRenderingEnabled = value;
 }
 
 void lv_init(void)
@@ -153,17 +150,17 @@ void lv_reset_misc_sfx(void)
 {
 	s32 i;
 
-	for (i = 0; i != ARRAYCOUNT(g_MiscSfxAudioHandles); i++) {
+	for (i = 0; i < NUM_MISCSFX; i++) {
 		g_MiscSfxAudioHandles[i] = NULL;
 		g_MiscSfxActiveTypes[i] = -1;
 	}
 }
 
-s32 lv_get_misc_sfx_index(u32 type)
+s32 lv_get_misc_sfx_index(MiscSfxType type)
 {
 	s32 i;
 
-	for (i = 0; i != ARRAYCOUNT(g_MiscSfxActiveTypes); i++) {
+	for (i = 0; i < NUM_MISCSFX; i++) {
 		if (g_MiscSfxActiveTypes[i] == type) {
 			return i;
 		}
@@ -172,8 +169,14 @@ s32 lv_get_misc_sfx_index(u32 type)
 	return -1;
 }
 
-void lv_set_misc_sfx_state(u32 type, bool play)
+void lv_set_misc_sfx_state(MiscSfxType type, bool play)
 {
+	static s32 sfxnums[NUM_MISCSFX] = {
+		SFXNUM_05C8_HEARTBEAT,
+		SFXMAP_8068_SLAYER_WHIR,
+		SFXNUM_01C8_SLAYER_BEEP,
+	};
+
 	if (play) {
 		if (lv_get_misc_sfx_index(type) == -1) {
 			s32 index = lv_get_misc_sfx_index(-1);
@@ -184,18 +187,18 @@ void lv_set_misc_sfx_state(u32 type, bool play)
 			if (index != -1)
 #endif
 			{
-				snd_start(var80095200, g_MiscSfxSounds[type], &g_MiscSfxAudioHandles[index], -1, -1, -1, -1, -1);
+				snd_start(var80095200, sfxnums[type], &g_MiscSfxAudioHandles[index], -1, -1, -1, -1, -1);
 				g_MiscSfxActiveTypes[index] = type;
 			}
 		}
 	} else {
-		u32 stack;
+		s32 stack;
 		s32 index = lv_get_misc_sfx_index(type);
 
 		if (index != -1) {
 			sndp_stop_sound(g_MiscSfxAudioHandles[index]);
 #if VERSION < VERSION_NTSC_1_0
-			g_MiscSfxAudioHandles[index] = 0;
+			g_MiscSfxAudioHandles[index] = NULL;
 #endif
 			g_MiscSfxActiveTypes[index] = -1;
 		}
@@ -207,40 +210,45 @@ void lv_update_misc_sfx(void)
 	s32 i;
 
 	if (g_Vars.lvupdate240 == 0) {
-		for (i = 0; i != ARRAYCOUNT(g_MiscSfxActiveTypes); i++) {
+		for (i = 0; i < NUM_MISCSFX; i++) {
 			lv_set_misc_sfx_state(i, false);
 		}
 	} else {
-		bool usingboost = g_Vars.speedpillon
-			&& lv_get_slow_motion_type() == SLOWMOTION_OFF
-			&& g_Vars.in_cutscene == false;
-		bool usingrocket;
+		{
+			bool usingboost = g_Vars.speedpillon
+				&& lv_get_slow_motion_type() == SLOWMOTION_OFF
+				&& g_Vars.in_cutscene == false;
 
-		lv_set_misc_sfx_state(MISCSFX_BOOSTHEARTBEAT, usingboost);
-
-		usingrocket = false;
-
-		for (i = 0; i < PLAYERCOUNT(); i++) {
-			if (g_Vars.players[i]->visionmode == VISIONMODE_SLAYERROCKET) {
-				usingrocket = true;
-			}
+			lv_set_misc_sfx_state(MISCSFX_BOOSTHEARTBEAT, usingboost);
 		}
 
-		lv_set_misc_sfx_state(MISCSFX_SLAYERROCKETHUM, usingrocket);
-		lv_set_misc_sfx_state(MISCSFX_SLAYERROCKETBEEP, usingrocket);
+		{
+			bool usingrocket = false;
+
+			for (i = 0; i < PLAYERCOUNT(); i++) {
+				if (g_Vars.players[i]->visionmode == VISIONMODE_SLAYERROCKET) {
+					usingrocket = true;
+				}
+			}
+
+			lv_set_misc_sfx_state(MISCSFX_SLAYERROCKETHUM, usingrocket);
+			lv_set_misc_sfx_state(MISCSFX_SLAYERROCKETBEEP, usingrocket);
+		}
 	}
 
-	if (g_Vars.lvupdate240 == 0 && g_MiscAudioHandle && sndp_get_state(g_MiscAudioHandle) != AL_STOPPED) {
-		sndp_stop_sound(g_MiscAudioHandle);
+	if (g_Vars.lvupdate240 == 0 && g_MpAlarmAudioHandle && sndp_get_state(g_MpAlarmAudioHandle) != AL_STOPPED) {
+		sndp_stop_sound(g_MpAlarmAudioHandle);
 	}
 }
+
+s32 g_LvLockscreenFrameNum = 0;
 
 void lv_reset(s32 stagenum)
 {
 	lv_fade_reset();
 
-	var80084014 = false;
-	var80084010 = 0;
+	g_LvIsPaused = false;
+	g_LvMpPausedPrev = 0;
 
 #if VERSION >= VERSION_NTSC_1_0
 	joy_lock_cyclic_polling();
@@ -260,9 +268,9 @@ void lv_reset(s32 stagenum)
 
 	cheats_reset();
 
-	var80084040 = true;
+	g_LvSceneRenderingEnabled = true;
 	g_Vars.lvframenum = 0;
-	var80084050 = 0;
+	g_LvLockscreenFrameNum = 0;
 
 	g_Vars.lvframe60 = 0;
 	g_Vars.lvupdate240 = 4;
@@ -296,7 +304,7 @@ void lv_reset(s32 stagenum)
 	g_Vars.autocutfinished = false;
 	g_Vars.autocutgroupskip = false;
 
-	g_MiscAudioHandle = NULL;
+	g_MpAlarmAudioHandle = NULL;
 
 	music_reset();
 	modelmgr_set_lv_resetting(true);
@@ -465,7 +473,7 @@ void lv_reset(s32 stagenum)
 	modelmgr_set_lv_resetting(false);
 	var80084018 = 1;
 	sched_reset_artifacts();
-	lv_set_paused(0);
+	lv_set_paused(false);
 
 #if PIRACYCHECKS
 	{
@@ -495,6 +503,12 @@ void lv_reset(s32 stagenum)
 	}
 #endif
 }
+
+s16 g_FadeNumFrames = 0;
+f32 g_FadeFrac = -1;
+u32 g_FadePrevColour = 0;
+u32 g_FadeColour = 0;
+s16 g_FadeDelay = 0;
 
 void lv_configure_fade(u32 color, s16 num_frames)
 {
@@ -1158,11 +1172,11 @@ Gfx *lv_render(Gfx *gdl)
 					&& g_Vars.lvframenum <= 5
 					&& !g_Vars.normmplayerisrunning
 					&& g_Vars.tickmode != TICKMODE_CUTSCENE) {
-				if (var80084050 < 6) {
+				if (g_LvLockscreenFrameNum < 6) {
 					g_Vars.lockscreen = 1;
 				}
 
-				var80084050++;
+				g_LvLockscreenFrameNum++;
 			} else if (g_Vars.currentplayer->gunctrl.loadall
 					&& var80075d60 == 2
 					&& g_Vars.currentplayer->cameramode != CAMERAMODE_THIRDPERSON
@@ -1731,23 +1745,6 @@ Gfx *lv_render(Gfx *gdl)
 	return gdl;
 }
 
-const char var7f1b7730[] = "fr: %d\n";
-
-u32 g_CutsceneTime240_60 = 0;
-
-#if VERSION >= VERSION_NTSC_1_0
-u32 var800840a8 = 0;
-u32 var800840ac = 0;
-u32 var800840b0 = 0;
-#else
-u32 var80086930nb = 0;
-u32 var800840a8 = 0;
-u32 var800840ac = 0;
-u32 var800840b0 = 0;
-#endif
-
-u32 var800840b4 = 0;
-
 void lv_update_solo_handicaps(void)
 {
 	if (g_Vars.antiplayernum >= 0) {
@@ -1932,10 +1929,13 @@ s32 sub54321(s32 value)
 }
 #endif
 
+s32 g_CutsceneTime240_60 = 0;
+
 void lv_update_cutscene_time(void)
 {
 	if (g_Vars.in_cutscene) {
 		g_CutsceneTime240_60 += g_Vars.lvupdate60;
+		osSyncPrintf("fr: %d\n", g_CutsceneTime240_60);
 		return;
 	}
 
@@ -1995,7 +1995,7 @@ void lv_tick(void)
 	s32 j;
 	s32 i;
 
-	lv_check_pause_state_changed();
+	lv_handle_mppause_rumble();
 
 #if VERSION >= VERSION_NTSC_1_0
 	if (g_Vars.pakstocheck) {
@@ -2205,10 +2205,10 @@ void lv_tick(void)
 
 			// Sound alarm at 10 seconds remaining
 			if (nexttime >= TICKS(g_MpTimeLimit60) - TICKS(600)
-					&& g_MiscAudioHandle == NULL
+					&& g_MpAlarmAudioHandle == NULL
 					&& !lv_is_paused()
 					&& nexttime < TICKS(g_MpTimeLimit60)) {
-				snd_start_extra(&g_MiscAudioHandle, false, AL_VOL_FULL, AL_PAN_CENTER, SFXNUM_00A3_ALARM_DEFAULT, 1, 1, -1, true);
+				snd_start_extra(&g_MpAlarmAudioHandle, false, AL_VOL_FULL, AL_PAN_CENTER, SFXNUM_00A3_ALARM_DEFAULT, 1, 1, -1, true);
 			}
 		}
 
@@ -2292,6 +2292,7 @@ void lv_tick(void)
 		lang_tick();
 	} else {
 		lv_update_cutscene_time();
+		osSyncPrintf("cutsceneframe: %d\n", g_CutsceneTime240_60);
 		vtxstore_tick();
 		lv_update_solo_handicaps();
 		rooms_tick();
@@ -2347,11 +2348,6 @@ void lv_tick(void)
 	}
 }
 
-const char var7f1b7738[] = "cutsceneframe: %d\n";
-const char var7f1b774c[] = "pos:%s%s %.2f %.2f %.2f\n";
-const char var7f1b7768[] = "";
-const char var7f1b776c[] = "";
-
 void lv_tick_player(void)
 {
 	f32 xdiff;
@@ -2365,6 +2361,11 @@ void lv_tick_player(void)
 		}
 	}
 
+	osSyncPrintf("pos:%s%s %.2f %.2f %.2f\n", "", "",
+			g_Vars.currentplayer->prop->pos.x,
+			g_Vars.currentplayer->prop->pos.y,
+			g_Vars.currentplayer->prop->pos.z);
+
 	xdiff = g_Vars.currentplayer->prop->pos.x - g_Vars.currentplayer->bondprevpos.x;
 	zdiff = g_Vars.currentplayer->prop->pos.z - g_Vars.currentplayer->bondprevpos.z;
 
@@ -2375,8 +2376,8 @@ void lv_stop(void)
 {
 	paks_stop(true);
 
-	if (g_MiscAudioHandle && sndp_get_state(g_MiscAudioHandle) != AL_STOPPED) {
-		sndp_stop_sound(g_MiscAudioHandle);
+	if (g_MpAlarmAudioHandle && sndp_get_state(g_MpAlarmAudioHandle) != AL_STOPPED) {
+		sndp_stop_sound(g_MpAlarmAudioHandle);
 	}
 
 	if (g_Vars.stagenum < STAGE_TITLE) {
@@ -2418,11 +2419,11 @@ void lv_stop(void)
 #endif
 }
 
-void lv_check_pause_state_changed(void)
+void lv_handle_mppause_rumble(void)
 {
-	u32 paused = mp_is_paused();
+	bool paused = mp_is_paused();
 
-	if (paused != var80084010) {
+	if (paused != g_LvMpPausedPrev) {
 		if (paused) {
 			pak_disable_rumble_for_all_players();
 		} else {
@@ -2430,7 +2431,7 @@ void lv_check_pause_state_changed(void)
 		}
 	}
 
-	var80084010 = paused;
+	g_LvMpPausedPrev = paused;
 }
 
 void lv_set_paused(bool paused)
@@ -2443,12 +2444,12 @@ void lv_set_paused(bool paused)
 		pak_enable_rumble_for_all_players();
 	}
 
-	var80084014 = paused;
+	g_LvIsPaused = paused;
 }
 
 bool lv_is_paused(void)
 {
-	return var80084014;
+	return g_LvIsPaused;
 }
 
 s32 lv_get_difficulty(void)
@@ -2490,7 +2491,7 @@ s32 lv_get_stage_time60(void)
 	return g_StageTimeElapsed60;
 }
 
-u32 func0f16ce04(u32 arg0)
+Gfx *func0f16ce04(Gfx *gdl)
 {
-	return arg0;
+	return gdl;
 }

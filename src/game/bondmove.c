@@ -702,8 +702,8 @@ void bmove_process_input(bool allowc1x, bool allowc1y, bool allowc1buttons, bool
 	} else {
 		if (g_Vars.mplayerisrunning) {
 			if (PLAYERCOUNT() == 1) {
-				if (mp_is_paused() && (c1buttonsthisframe & START_BUTTON) && g_MpSetup.paused != MPPAUSEMODE_GAMEOVER) {
-					mp_set_paused(MPPAUSEMODE_UNPAUSED);
+				if (mp_is_paused() && (c1buttonsthisframe & START_BUTTON) && g_MpSetup.pausemode != MPPAUSEMODE_GAMEOVER) {
+					mp_set_pausemode(MPPAUSEMODE_UNPAUSED);
 				}
 			} else {
 				if (mp_is_paused() && (c1buttonsthisframe & START_BUTTON)) {

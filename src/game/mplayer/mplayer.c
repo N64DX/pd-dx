@@ -259,7 +259,7 @@ void mp_reset(void)
 #endif
 	}
 
-	g_MpSetup.paused = false;
+	g_MpSetup.pausemode = MPPAUSEMODE_UNPAUSED;
 
 	g_MpEnableMusicSwitching = false;
 
@@ -1172,16 +1172,16 @@ bool mp_is_paused(void)
 		return true;
 	}
 
-	if (g_MpSetup.paused == PAUSEMODE_UNPAUSED) {
+	if (g_MpSetup.pausemode == PAUSEMODE_UNPAUSED) {
 		return false;
 	}
 
 	return true;
 }
 
-void mp_set_paused(u8 mode)
+void mp_set_pausemode(u8 mode)
 {
-	g_MpSetup.paused = mode;
+	g_MpSetup.pausemode = mode;
 }
 
 /**
@@ -1206,7 +1206,7 @@ Gfx *mp_render_modal_text(Gfx *gdl)
 	g_UiScaleX = g_ViRes == VIRES_HI ? 2 : 1;
 #endif
 
-	if (g_MpSetup.paused == MPPAUSEMODE_PAUSED) {
+	if (g_MpSetup.pausemode == MPPAUSEMODE_PAUSED) {
 		s32 red = (s32) ((1.0f - g_20SecIntervalFrac) * 20.0f * 255.0f) % 255;
 		s32 stack2;
 
@@ -1247,7 +1247,7 @@ Gfx *mp_render_modal_text(Gfx *gdl)
 
 		gdl = text_end(gdl);
 	} else if (!g_MainIsEndscreen
-			&& g_MpSetup.paused == MPPAUSEMODE_UNPAUSED
+			&& g_MpSetup.pausemode == MPPAUSEMODE_UNPAUSED
 			&& g_Vars.currentplayer->isdead
 			&& g_Vars.currentplayer->redbloodfinished
 			&& g_Vars.currentplayer->deathanimfinished
@@ -2431,7 +2431,7 @@ void mp_end_match(void)
 	s32 i;
 
 	music_start_menu();
-	mp_set_paused(MPPAUSEMODE_GAMEOVER);
+	mp_set_pausemode(MPPAUSEMODE_GAMEOVER);
 
 	prevplayernum = g_Vars.currentplayernum;
 

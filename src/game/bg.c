@@ -966,7 +966,7 @@ Gfx *bg_render_scene_in_xray(Gfx *gdl)
 
 				gSPMatrix(gdl++, osVirtualToPhysical(cam_get_perspective_mtxl()), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
 
-				if (debug_is_prop_rendering_enabled() && get_var80084040()) {
+				if (debug_is_prop_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 					if (thing->roomnum == -1) {
 						gdl = props_render(gdl, 0, RENDERPASS_XLU, roomnumsbyprop);
 					}
@@ -1145,7 +1145,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 		gSPMatrix(gdl++, osVirtualToPhysical(cam_get_perspective_mtxl()), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
 		gdl = env_stop_fog(gdl);
 
-		if (debug_is_prop_rendering_enabled() && get_var80084040()) {
+		if (debug_is_prop_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 			if (firstroomnum == thing->roomnum) {
 				gdl = props_render(gdl, 0, RENDERPASS_OPA_PREBG, roomnumsbyprop);
 			}
@@ -1159,7 +1159,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 		gdl = bg_scissor_within_viewport_f(gdl, thing->box.xmin, thing->box.ymin, thing->box.xmax, thing->box.ymax);
 		gdl = env_start_fog(gdl, false);
 
-		if (debug_is_bg_rendering_enabled() && get_var80084040()) {
+		if (debug_is_bg_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 			if (g_StageIndex != STAGEINDEX_TEST_OLD) {
 				gdl = bg_render_room_opaque(gdl, thing->roomnum);
 			}
@@ -1170,7 +1170,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 
 		gdl = env_stop_fog(gdl);
 
-		if (debug_is_prop_rendering_enabled() && get_var80084040()) {
+		if (debug_is_prop_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 			if (firstroomnum == thing->roomnum) {
 				gdl = props_render(gdl, 0, RENDERPASS_OPA_POSTBG, roomnumsbyprop);
 			}
@@ -1185,7 +1185,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 	// Render wall hits
 	gSPMatrix(gdl++, osVirtualToPhysical(cam_get_orthogonal_mtxl()), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
 
-	if (get_var80084040() && g_Vars.currentplayer->visionmode != VISIONMODE_XRAY) {
+	if (lv_is_scene_rendering_enabled() && g_Vars.currentplayer->visionmode != VISIONMODE_XRAY) {
 		for (i = 0; i < g_BgNumDrawSlots; i++) {
 			roomnum = roomnums[i];
 			gdl = wallhit_render_bg_hits(g_BgDrawSlots[roomnum].roomnum, gdl);
@@ -1205,7 +1205,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 		gdl = bg_scissor_within_viewport_f(gdl, thing->box.xmin, thing->box.ymin, thing->box.xmax, thing->box.ymax);
 		gdl = env_start_fog(gdl, true);
 
-		if (debug_is_bg_rendering_enabled() && get_var80084040()) {
+		if (debug_is_bg_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 			gdl = bg_render_room_xlu(gdl, thing->roomnum);
 		}
 
@@ -1214,7 +1214,7 @@ Gfx *bg_render_scene(Gfx *gdl)
 		gdl = env_stop_fog(gdl);
 
 		// Render prop translucent components
-		if (debug_is_prop_rendering_enabled() && get_var80084040()) {
+		if (debug_is_prop_rendering_enabled() && lv_is_scene_rendering_enabled()) {
 			if (firstroomnum == thing->roomnum) {
 				gdl = props_render(gdl, 0, RENDERPASS_XLU, roomnumsbyprop);
 			}

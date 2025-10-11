@@ -158,9 +158,9 @@ MenuItemHandlerResult menuhandler_mp_pause(s32 operation, struct menuitem *item,
 {
 	if (operation == MENUOP_CONFIRM) {
 		if (mp_is_paused()) {
-			mp_set_paused(MPPAUSEMODE_UNPAUSED);
+			mp_set_pausemode(MPPAUSEMODE_UNPAUSED);
 		} else {
-			mp_set_paused(MPPAUSEMODE_PAUSED);
+			mp_set_pausemode(MPPAUSEMODE_PAUSED);
 		}
 	}
 
@@ -772,7 +772,7 @@ void mp_push_pause_dialog(void)
 	u32 prevplayernum = g_MpPlayerNum;
 
 #if VERSION >= VERSION_NTSC_1_0
-	if (g_MpSetup.paused != MPPAUSEMODE_GAMEOVER && g_MainIsEndscreen == 0)
+	if (g_MpSetup.pausemode != MPPAUSEMODE_GAMEOVER && g_MainIsEndscreen == 0)
 #endif
 	{
 		g_MpPlayerNum = g_Vars.currentplayerstats->mpindex;

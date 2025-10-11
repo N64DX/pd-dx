@@ -634,7 +634,7 @@ void menu_tick(void)
 				} else if (g_Vars.restartlevel) {
 					main_change_to_stage(main_get_stage_num());
 				} else {
-					mp_set_paused(MPPAUSEMODE_UNPAUSED);
+					mp_set_pausemode(MPPAUSEMODE_UNPAUSED);
 					g_Vars.mplayerisrunning = false;
 					g_Vars.normmplayerisrunning = false;
 					g_Vars.lvmpbotlevel = 0;
@@ -658,7 +658,7 @@ void menu_tick(void)
 				break;
 			case MENUROOT_COOPCONTINUE:
 				if (g_Vars.coopplayernum >= 0) {
-					mp_set_paused(MPPAUSEMODE_UNPAUSED);
+					mp_set_pausemode(MPPAUSEMODE_UNPAUSED);
 					g_Vars.mplayerisrunning = false;
 					g_Vars.normmplayerisrunning = false;
 					g_Vars.lvmpbotlevel = 0;

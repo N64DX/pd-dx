@@ -32,7 +32,7 @@ void mp_set_weaponset_slotnum(s32 weaponsetnum);
 void mp_apply_weaponset_if_standard(void);
 s32 mp_get_weaponset_slotnum(void);
 bool mp_is_paused(void);
-void mp_set_paused(u8 mode);
+void mp_set_pausemode(u8 mode);
 Gfx *mp_render_modal_text(Gfx *gdl);
 void mp_end_match(void);
 s32 mp_get_num_heads2(void);

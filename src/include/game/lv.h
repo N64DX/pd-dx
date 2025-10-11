@@ -4,7 +4,7 @@
 #include "data.h"
 #include "types.h"
 
-u32 get_var80084040(void);
+bool lv_is_scene_rendering_enabled(void);
 void lv_init(void);
 void lv_reset(s32 stagenum);
 Gfx *lv_render(Gfx *gdl);

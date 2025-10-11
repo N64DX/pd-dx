@@ -5,6 +5,8 @@
 #include "data.h"
 #include "types.h"
 
+u32 var800840b0 = 0;
+
 void frametime_init(void)
 {
 	g_Vars.thisframestartt = osGetCount();
