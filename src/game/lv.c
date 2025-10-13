@@ -1270,7 +1270,7 @@ Gfx *lv_render(Gfx *gdl)
 
 				// Handle eyespy Z presses
 				if (g_Vars.currentplayer->eyespy
-						&& (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)
+						&& DEVICE_IS_ACTIVE(DEVICE_EYESPY)
 						&& g_Vars.currentplayer->eyespy->camerabuttonheld) {
 					if (g_Vars.currentplayer->eyespy->mode == EYESPYMODE_CAMSPY) {
 						objective_check_holograph(400);

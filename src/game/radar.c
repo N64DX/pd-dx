@@ -261,10 +261,10 @@ Gfx *radar_render(Gfx *gdl)
 			return gdl;
 		}
 
-		if ((g_PlayerConfigsArray[g_Vars.currentplayerstats->mpindex].base.displayoptions & 0x00000004) == 0) {
+		if ((g_PlayerConfigsArray[g_Vars.currentplayerstats->mpindex].base.displayoptions & MPDISPLAYOPTION_RADAR) == 0) {
 			return gdl;
 		}
-	} else if ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_RTRACKER) == 0) {
+	} else if (!DEVICE_IS_ACTIVE(DEVICE_RTRACKER)) {
 		if (!g_MissionConfig.iscoop || !g_Vars.coopradaron) {
 			return gdl;
 		}
@@ -394,7 +394,7 @@ Gfx *radar_render(Gfx *gdl)
 	gdl = scenario_radar_extra(gdl);
 
 	// Draw dots for r-tracked props
-	if (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_RTRACKER) {
+	if (DEVICE_IS_ACTIVE(DEVICE_RTRACKER)) {
 		gdl = radar_render_r_tracked_props(gdl);
 	}
 

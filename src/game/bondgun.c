@@ -1442,7 +1442,7 @@ s32 bgun_tick_inc_reload(struct handweaponinfo *info, s32 handnum, struct hand *
 				}
 
 #if VERSION >= VERSION_JPN_FINAL
-				if (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY) {
+				if (DEVICE_IS_ACTIVE(DEVICE_EYESPY)) {
 					hand->incrementalreloading = false;
 				}
 #endif
@@ -4083,7 +4083,7 @@ bool bgun_load_all(void)
 {
 	// PAL adds a check for the eyespy being used
 #if VERSION >= VERSION_PAL_BETA
-	if ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)) {
+	if (DEVICE_IS_ACTIVE(DEVICE_EYESPY)) {
 		g_Vars.currentplayer->gunctrl.loadall = false;
 		return false;
 	}
@@ -6662,8 +6662,7 @@ void bgun_update_lasersight(struct hand *hand, struct modeldef *modeldef, s32 ha
 
 		mtx4_transform_vec_in_place(cam_get_projection_mtxf(), &beamnear);
 
-		if (hand->useposrot
-				|| (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_XRAYSCANNER)) {
+		if (hand->useposrot || DEVICE_IS_ACTIVE(DEVICE_XRAYSCANNER)) {
 			beamfar.x = 0.0f;
 			beamfar.y = 0.0f;
 			beamfar.z = 1.0f;
@@ -7981,12 +7980,11 @@ void bgun_tick_gameplay2(void)
 	}
 
 	// Return control to Jo if eyespy has been deselected
-	if ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY) == 0
-			&& player->eyespy) {
+	if (!DEVICE_IS_ACTIVE(DEVICE_EYESPY) && player->eyespy) {
 		player->eyespy->active = false;
 	}
 
-	if ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_XRAYSCANNER)
+	if (DEVICE_IS_ACTIVE(DEVICE_XRAYSCANNER)
 			&& (bgun_get_weapon_num(HAND_RIGHT) != WEAPON_FARSIGHT || player->gunsightoff)) {
 		// Using normal xray scanner (not Farsight zoom)
 		if (player->visionmode != VISIONMODE_XRAY) {
@@ -8047,8 +8045,7 @@ void bgun_tick_gameplay2(void)
 		}
 	}
 
-	if (g_Vars.currentplayer->devicesactive &
-			~g_Vars.currentplayer->devicesinhibit & DEVICE_CLOAKRCP120) {
+	if (DEVICE_IS_ACTIVE(DEVICE_CLOAKRCP120)) {
 		if (player->gunctrl.weaponnum == WEAPON_RCP120) {
 			struct chrdata *chr = player->prop->chr;
 

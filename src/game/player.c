@@ -3262,9 +3262,7 @@ void player_tick(bool arg0)
 			} else {
 				// Eyespy is held
 				// If eyespy is activated, launch it
-				if ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)
-						&& g_PlayersWithControl[playernum]
-						&& !eyespy_try_launch()) {
+				if (DEVICE_IS_ACTIVE(DEVICE_EYESPY) && g_PlayersWithControl[playernum] && !eyespy_try_launch()) {
 					// Launch failed
 					eyespy->held = true;
 					eyespy->active = false;
@@ -3272,9 +3270,7 @@ void player_tick(bool arg0)
 				}
 			}
 
-			if (eyespy->deployed
-					&& g_PlayersWithControl[playernum]
-					&& (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)) {
+			if (eyespy->deployed && g_PlayersWithControl[playernum] && DEVICE_IS_ACTIVE(DEVICE_EYESPY)) {
 				// Eyespy is being controlled
 				if (eyespy->active == false) {
 					// Eyespy is being turned off
@@ -3330,9 +3326,7 @@ void player_tick(bool arg0)
 		for (i = 0; i < PLAYERCOUNT(); i++) {
 			g_Vars.players[i]->joybutinhibit = 0xffffffff;
 		}
-	} else if (g_Vars.currentplayer->eyespy
-			&& (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)
-			&& g_Vars.currentplayer->eyespy->active) {
+	} else if (g_Vars.currentplayer->eyespy && DEVICE_IS_ACTIVE(DEVICE_EYESPY) && g_Vars.currentplayer->eyespy->active) {
 		// Controlling an eyespy
 		struct coord sp308;
 		playermgr_set_fov_y(120);
@@ -4503,13 +4497,13 @@ Gfx *player_render_hud(Gfx *gdl)
 		if (g_Vars.currentplayer->isdead == false
 				&& g_InCutscene == 0
 				&& (!g_Vars.currentplayer->eyespy || (g_Vars.currentplayer->eyespy && !g_Vars.currentplayer->eyespy->active))
-				&& ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit) & DEVICE_NIGHTVISION)) {
+				&& DEVICE_IS_ACTIVE(DEVICE_NIGHTVISION)) {
 			gdl = bview_draw_nv_lens(gdl);
 			gdl = bview_draw_nv_binoculars(gdl);
 		} else if (g_Vars.currentplayer->isdead == false
 				&& g_InCutscene == 0
 				&& (!g_Vars.currentplayer->eyespy || (g_Vars.currentplayer->eyespy && !g_Vars.currentplayer->eyespy->active))
-				&& ((g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit) & DEVICE_IRSCANNER)) {
+				&& DEVICE_IS_ACTIVE(DEVICE_IRSCANNER)) {
 			gdl = bview_draw_ir_lens(gdl);
 			gdl = bview_draw_ir_binoculars(gdl);
 		}

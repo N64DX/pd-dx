@@ -954,10 +954,8 @@ void obj_get_screeninfo(struct coord *arg0, f32 *arg1, f32 *arg2, f32 *arg3, f32
 	f32 aspect = vi_get_aspect();
 	f32 fovy = vi_get_fov_y();
 
-	if (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY) {
-		if (g_Vars.currentplayer->eyespy && g_Vars.currentplayer->eyespy->active) {
-			fovy = 120.0f;
-		}
+	if (DEVICE_IS_ACTIVE(DEVICE_EYESPY) && g_Vars.currentplayer->eyespy && g_Vars.currentplayer->eyespy->active) {
+		fovy = 120.0f;
 	}
 
 	sp4c.x = arg1[0];

@@ -5236,9 +5236,7 @@ Gfx *menu_render(Gfx *gdl)
 			}
 		}
 
-		if (g_Vars.currentplayer->eyespy
-				&& (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & DEVICE_EYESPY)
-				&& g_Vars.currentplayer->eyespy->active) {
+		if (g_Vars.currentplayer->eyespy && DEVICE_IS_ACTIVE(DEVICE_EYESPY) && g_Vars.currentplayer->eyespy->active) {
 			removepiece = true;
 		}
 

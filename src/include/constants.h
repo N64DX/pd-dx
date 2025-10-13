@@ -83,10 +83,12 @@
 #define VALIDWEAPON()       (g_Vars.currentplayer->gunctrl.weaponnum >= WEAPON_UNARMED && g_Vars.currentplayer->gunctrl.weaponnum <= WEAPON_COMBATBOOST)
 #define FUNCISSEC()         (VALIDWEAPON() && (g_PlayerConfigsArray[g_Vars.currentplayerstats->mpindex].gunfuncs[(g_Vars.currentplayer->gunctrl.weaponnum - 1) >> 3] & (1 << ((g_Vars.currentplayer->gunctrl.weaponnum - 1) & 7))))
 
+#define DEVICE_IS_ACTIVE(device) (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & (device))
+
 #define USINGDEVICE(device) (!g_Vars.currentplayer->isdead \
 		&& !g_InCutscene \
 		&& EYESPYINACTIVE() \
-		&& (g_Vars.currentplayer->devicesactive & ~g_Vars.currentplayer->devicesinhibit & (device)))
+		&& DEVICE_IS_ACTIVE(device))
 
 #if VERSION >= VERSION_PAL_BETA
 #define LVUPDATE60FREAL()   g_Vars.lvupdate60freal
