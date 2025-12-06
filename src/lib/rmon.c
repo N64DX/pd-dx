@@ -7,9 +7,9 @@
 #include "data.h"
 #include "types.h"
 
-void rmonproc()
+void rmonproc(void *data)
 {
-	// empty
+	if (data);
 }
 
 bool rmon_is_disabled(void)

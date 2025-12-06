@@ -4,7 +4,7 @@
 #include "data.h"
 #include "types.h"
 
-void rmonproc();
+void rmonproc(void *data);
 void rmon0002fa30(u32 *arg0, s32 arg1);
 void rmon0002fa38(s32 arg0);
 void rmon0002fa40(void);
