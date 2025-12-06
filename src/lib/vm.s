@@ -66,6 +66,7 @@ glabel g_VmScratch
 # Bits are 1 if the slot is vacant.
 glabel g_VmVacantBits
 .space VM_VACANTBITS_LEN
+.align 1
 
 # The number of pages that can be loaded at any one time (268).
 # Written but never read.
@@ -74,6 +75,7 @@ glabel g_VmNumSlots2
 .space 2
 
 # Pointer to the first byte in the g_VmVacantBits array. Never changed once set.
+.align 2
 glabel g_VmVacantFirstByte
 .space 4
 
