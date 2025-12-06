@@ -115,7 +115,7 @@ void menugfx_create_blur(void)
 	g_UiScaleX = 1;
 }
 
-Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 arg2, s16 arg3)
+Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 offsetx, s16 offsety)
 {
 	Col *colours;
 	Vtx *vertices;
@@ -151,57 +151,57 @@ Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 arg2, s16 arg3)
 	width = vi_get_width() * 10;
 	height = vi_get_height() * 10;
 
-	*(u16 *)&vertices[0].x = arg2;
-	*(u16 *)&vertices[0].y = arg3;
+	*(u16 *)&vertices[0].x = offsetx;
+	*(u16 *)&vertices[0].y = offsety;
 	vertices[0].z = -10;
-	*(u16 *)&vertices[1].x = arg2 + SCREEN_320 * 10u + 40;
-	*(u16 *)&vertices[1].y = arg3;
+	*(u16 *)&vertices[1].x = offsetx + (SCREEN_320 + 4) * 10u;
+	*(u16 *)&vertices[1].y = offsety;
 	vertices[1].z = -10;
-	*(u16 *)&vertices[2].x = arg2 + SCREEN_320 * 10u + 40;
-	*(u16 *)&vertices[2].y = arg3 + SCREEN_240 * 10u + 50;
+	*(u16 *)&vertices[2].x = offsetx + (SCREEN_320 + 4) * 10u;
+	*(u16 *)&vertices[2].y = offsety + (SCREEN_240 + 5) * 10u;
 	vertices[2].z = -10;
-	*(u16 *)&vertices[3].x = arg2;
-	*(u16 *)&vertices[3].y = arg3 + SCREEN_240 * 10u + 50;
+	*(u16 *)&vertices[3].x = offsetx;
+	*(u16 *)&vertices[3].y = offsety + (SCREEN_240 + 5) * 10u;
 	vertices[3].z = -10;
 #elif PAL
 	width = vi_get_width() * 10;
 	height = vi_get_height() * 10;
 
-	*(u16 *)&vertices[0].x = arg2;
-	*(u16 *)&vertices[0].y = arg3;
+	*(u16 *)&vertices[0].x = offsetx;
+	*(u16 *)&vertices[0].y = offsety;
 	vertices[0].z = -10;
-	*(u16 *)&vertices[1].x = (s32)width + arg2 + 40;
-	*(u16 *)&vertices[1].y = arg3;
+	*(u16 *)&vertices[1].x = (s32)width + offsetx + 40;
+	*(u16 *)&vertices[1].y = offsety;
 	vertices[1].z = -10;
-	*(u16 *)&vertices[2].x = (s32)width + arg2 + 40;
-	*(u16 *)&vertices[2].y = (s32)height + arg3 + 50;
+	*(u16 *)&vertices[2].x = (s32)width + offsetx + 40;
+	*(u16 *)&vertices[2].y = (s32)height + offsety + 50;
 	vertices[2].z = -10;
-	*(u16 *)&vertices[3].x = arg2;
-	*(u16 *)&vertices[3].y = (s32)height + arg3 + 50;
+	*(u16 *)&vertices[3].x = offsetx;
+	*(u16 *)&vertices[3].y = (s32)height + offsety + 50;
 	vertices[3].z = -10;
 #else
-	*(u16 *)&vertices[0].x = arg2;
-	*(u16 *)&vertices[0].y = arg3;
+	*(u16 *)&vertices[0].x = offsetx;
+	*(u16 *)&vertices[0].y = offsety;
 	vertices[0].z = -10;
-	*(u16 *)&vertices[1].x = arg2 + SCREEN_320 * 10u + 40;
-	*(u16 *)&vertices[1].y = arg3;
+	*(u16 *)&vertices[1].x = offsetx + (SCREEN_320 + 4) * 10u;
+	*(u16 *)&vertices[1].y = offsety;
 	vertices[1].z = -10;
-	*(u16 *)&vertices[2].x = arg2 + SCREEN_320 * 10u + 40;
-	*(u16 *)&vertices[2].y = arg3 + SCREEN_240 * 10u + 50;
+	*(u16 *)&vertices[2].x = offsetx + (SCREEN_320 + 4) * 10u;
+	*(u16 *)&vertices[2].y = offsety + (SCREEN_240 + 5) * 10u;
 	vertices[2].z = -10;
-	*(u16 *)&vertices[3].x = arg2;
-	*(u16 *)&vertices[3].y = arg3 + SCREEN_240 * 10u + 50;
+	*(u16 *)&vertices[3].x = offsetx;
+	*(u16 *)&vertices[3].y = offsety + (SCREEN_240 + 5) * 10u;
 	vertices[3].z = -10;
 #endif
 
 	vertices[0].s = 0;
 	vertices[0].t = 0;
-	vertices[1].s = SCREEN_320 * 4;
+	vertices[1].s = BLURIMG_WIDTH * 32;
 	vertices[1].t = 0;
-	vertices[2].s = SCREEN_320 * 4;
-	vertices[2].t = SCREEN_320 * 3;
+	vertices[2].s = BLURIMG_WIDTH * 32;
+	vertices[2].t = BLURIMG_HEIGHT * 32;
 	vertices[3].s = 0;
-	vertices[3].t = SCREEN_320 * 3;
+	vertices[3].t = BLURIMG_HEIGHT * 32;
 
 	vertices[0].colour = 0;
 	vertices[1].colour = 0;

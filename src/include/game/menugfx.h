@@ -5,7 +5,7 @@
 #include "types.h"
 
 void menugfx_create_blur(void);
-Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 arg2, s16 arg3);
+Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 offsetx, s16 offsety);
 Gfx *menugfx_render_dialog_background(Gfx *gdl, s32 x1, s32 y1, s32 x2, s32 y2, struct menudialog *dialog, u32 colour1, u32 colour2, f32 arg8);
 Gfx *menugfx_draw_dropdown_background(Gfx *gdl, s32 x1, s32 y1, s32 x2, s32 y2);
 
