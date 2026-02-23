@@ -4855,18 +4855,18 @@ void chrs_check_for_noise(f32 noiseradius)
 		if (g_ChrSlots[i].model) {
 			struct prop *prop = g_ChrSlots[i].prop;
 
-			if (prop && prop->type == PROPTYPE_CHR &&
-					chr_get_target_prop(&g_ChrSlots[i]) == g_Vars.currentplayer->prop) {
-
+			if (prop && prop->type == PROPTYPE_CHR
+					&& chr_get_target_prop(&g_ChrSlots[i]) == g_Vars.currentplayer->prop) {
 				f32 distance = chr_get_distance_to_current_player(&g_ChrSlots[i]);
+				f32 value;
 
 				if (distance == 0) {
-					distance = 2;
+					value = 2;
 				} else {
-					distance = (noiseradius * 100 * g_ChrSlots[i].hearingscale * (1.0f + add)) / distance;
+					value = (noiseradius * 100 * g_ChrSlots[i].hearingscale * (1.0f + add)) / distance;
 				}
 
-				if (distance > 1.0f) {
+				if (value > 1.0f) {
 					chr_record_last_hear_target_time(&g_ChrSlots[i]);
 #if PIRACYCHECKS
 					{
