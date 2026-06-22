@@ -7990,7 +7990,11 @@ void platform_displace_props(struct prop *platform, s16 *propnums, struct coord 
 
 							g_Vars.players[playernum]->vv_ground += ydist;
 
-							if (ydist > 0.0f || (platformobj->flags & OBJFLAG_LIFT_CHECKCEILING) == 0) {
+							// OBJFLAG_LIFT_CHECKPROPS is used on unwalled lifts where a prop on the ground
+							// could be blocking the player's descent if the player is standing near the edge
+							// of the lift. If this flag is set, do collision checks when descending.
+							if (ydist > 0.0f || (platformobj->flags & OBJFLAG_LIFT_CHECKPROPS) == 0) {
+								// Simple collision check based on rooms and portals only
 								sp78.x = prop->pos.x;
 								sp78.y = prop->pos.y + ydist;
 								sp78.z = prop->pos.z;
@@ -8006,9 +8010,12 @@ void platform_displace_props(struct prop *platform, s16 *propnums, struct coord 
 
 								g_Vars.players[playernum]->vv_manground += ydist;
 								g_Vars.players[playernum]->sumground = g_Vars.players[playernum]->vv_manground / (PAL ? 0.054400026798248f : 0.045499980449677f);
-							} else if (bwalk_try_move_upwards(ydist) == CDRESULT_NOCOLLISION) {
-								g_Vars.players[playernum]->vv_manground += ydist;
-								g_Vars.players[playernum]->sumground = g_Vars.players[playernum]->vv_manground / (PAL ? 0.054400026798248f : 0.045499980449677f);
+							} else {
+								// Comprehensive collision check
+								if (bwalk_try_move_upwards(ydist) == CDRESULT_NOCOLLISION) {
+									g_Vars.players[playernum]->vv_manground += ydist;
+									g_Vars.players[playernum]->sumground = g_Vars.players[playernum]->vv_manground / (PAL ? 0.054400026798248f : 0.045499980449677f);
+								}
 							}
 
 							player_update_perim_info();

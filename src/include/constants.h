@@ -3086,7 +3086,7 @@
 #define OBJFLAG_CHOPPER_INACTIVE           0x80000000
 #define OBJFLAG_DOOR_TWOWAY                0x80000000 // Door swings in both directions
 #define OBJFLAG_HOVERCAR_ISHOVERBOT        0x80000000
-#define OBJFLAG_LIFT_CHECKCEILING          0x80000000
+#define OBJFLAG_LIFT_CHECKPROPS            0x80000000
 #define OBJFLAG_WEAPON_CANMIXDUAL          0x80000000
 
 // obj->flags2
