@@ -890,6 +890,7 @@ s32 tex_load_from_gdl(Gfx *instart, s32 gdlsizeinbytes, Gfx *outstart, struct te
 
 			tex1 = tex_find_in_pool(texturenum, pool);
 
+			// unk0c_03 is always 0, thus spf4 is always 0.
 			if (tex1 != NULL) {
 				spf4 = tex1->unk0c_03;
 			} else {
@@ -1034,7 +1035,7 @@ s32 tex_load_from_gdl(Gfx *instart, s32 gdlsizeinbytes, Gfx *outstart, struct te
 					}
 				}
 
-				if (spf4 && vtxstart) {
+				if (spf4 && vtxstart) { // Dead code, spf4 is always 0.
 					s32 count = ingdl->vtx.unk08 + 1;
 					Vtx *vtx;
 					s32 i;

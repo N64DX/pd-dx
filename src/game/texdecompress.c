@@ -2258,7 +2258,7 @@ void tex_load(s32 *updateword, struct texpool *pool, bool unusedarg)
 			tex = pool->rightpos;
 			tex->texturenum = g_TexNumToLoad;
 			tex->data = pool->leftpos;
-			tex->unk0c_03 = false;
+			tex->unk0c_03 = 0;
 
 			// Extract the texture data to the allocation (pool->leftpos)
 			if (iszlib) {
