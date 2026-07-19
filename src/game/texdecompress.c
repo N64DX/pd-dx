@@ -115,7 +115,7 @@ void tex_inflate_huffman(u8 *dst, s32 numiterations, s32 chansize);
 void tex_inflate_rle(u8 *dst, s32 blockstotal);
 void tex_read_alpha_bits(u8 *dst, s32 count);
 void tex_swizzle(u8 *dst, s32 width, s32 height, s32 format);
-void tex_blur(u8 *pixels, s32 width, s32 height, s32 method, s32 chansize);
+void tex_paeth_filter(u8 *pixels, s32 width, s32 height, s32 method, s32 chansize);
 s32 tex_align_indices(u8 *src, s32 width, s32 height, s32 format, u8 *dst);
 s32 tex_shrink_paletted(u8 *src, u8 *dst, s32 srcwidth, s32 srcheight, s32 format, u16 *palette, s32 numcolours);
 s32 tex_find_closest_colour_index_r_g_b_a(u8 *palette, s32 numcolours, s32 r, s32 g, s32 b, s32 a);
@@ -801,10 +801,10 @@ s32 tex_inflate_non_zlib(u8 *src, u8 *dst, bool hasloddata, s32 numlods, struct 
 			tex_inflate_rle(scratch, width * height);
 			imagebytesout = tex_inflate_lookup_from_buffer(scratch, width, height, &dst[totalbytesout], lookup, value, format);
 			break;
-		case TEXCOMPMETHOD_HUFFMANBLUR:
+		case TEXCOMPMETHOD_HUFFMANPAETH:
 			value = tex_read_bits(3);
 			tex_inflate_huffman(scratch, g_TexFormatNumChannels[format] * width * height, g_TexFormatChannelSizes[format]);
-			tex_blur(scratch, width, g_TexFormatNumChannels[format] * height, value, g_TexFormatChannelSizes[format]);
+			tex_paeth_filter(scratch, width, g_TexFormatNumChannels[format] * height, value, g_TexFormatChannelSizes[format]);
 
 			if (g_TexFormatHas1BitAlpha[format]) {
 				tex_read_alpha_bits(&scratch[width * height * 3], width * height);
@@ -812,10 +812,10 @@ s32 tex_inflate_non_zlib(u8 *src, u8 *dst, bool hasloddata, s32 numlods, struct 
 
 			imagebytesout = tex_channels_to_pixels(scratch, width, height, &dst[totalbytesout], format);
 			break;
-		case TEXCOMPMETHOD_RLEBLUR:
+		case TEXCOMPMETHOD_RLEPAETH:
 			value = tex_read_bits(3);
 			tex_inflate_rle(scratch, g_TexFormatNumChannels[format] * width * height);
-			tex_blur(scratch, width, g_TexFormatNumChannels[format] * height, value, g_TexFormatChannelSizes[format]);
+			tex_paeth_filter(scratch, width, g_TexFormatNumChannels[format] * height, value, g_TexFormatChannelSizes[format]);
 
 			if (g_TexFormatHas1BitAlpha[format]) {
 				tex_read_alpha_bits(&scratch[width * height * 3], width * height);
@@ -1986,9 +1986,13 @@ void tex_swizzle(u8 *dst, s32 width, s32 height, s32 format)
 }
 
 /**
- * Blur the pixels in the image with the surrounding pixels.
+ * Apply a Paeth filter. During compression a pixel's value is predicted from
+ * a "predictor" set of neighbouring pixels and only the difference between the
+ * predicted value and the actual value is stored.
+ * This reduces the range of values since pixels are often locally similar,
+ * smaller range means better RLE/Huffman compressibility.
  */
-void tex_blur(u8 *pixels, s32 width, s32 height, s32 method, s32 chansize)
+void tex_paeth_filter(u8 *pixels, s32 width, s32 height, s32 method, s32 chansize)
 {
 	s32 x;
 	s32 y;
@@ -2254,7 +2258,7 @@ void tex_load(s32 *updateword, struct texpool *pool, bool unusedarg)
 			tex = pool->rightpos;
 			tex->texturenum = g_TexNumToLoad;
 			tex->data = pool->leftpos;
-			tex->unk0c_03 = false;
+			tex->unk0c_03 = 0;
 
 			// Extract the texture data to the allocation (pool->leftpos)
 			if (iszlib) {
