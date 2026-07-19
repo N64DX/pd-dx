@@ -82,7 +82,7 @@
 
 struct drawslot g_BgDrawSlots[61];
 u8 *g_BgPrimaryData;
-u32 var800a4920;
+bool g_BgPrimaryDataLoaded;
 u32 g_BgSection3;
 struct room *g_Rooms;
 u8 *g_MpRoomVisibility;
@@ -1601,15 +1601,15 @@ void bg_reset(s32 stagenum)
 	}
 #endif
 
-	var800a4920 = *(u32 *)g_BgPrimaryData;
+	g_BgPrimaryDataLoaded = *(u32 *)g_BgPrimaryData;
 
-	if (var800a4920 == 0) {
+	if (!g_BgPrimaryDataLoaded) {
 		g_BgPrimaryData2 = (u32 *)g_BgPrimaryData;
 		g_BgRooms = (struct bgroom *)(g_BgPrimaryData2[1] + g_BgPrimaryData - 0x0f000000);
 		goto foo; foo:;
 		g_Vars.roomcount = 0;
 
-		for (j = 1; g_BgRooms[j].unk00 != 0; j++) {
+		for (j = 1; g_BgRooms[j].roomoffset != 0; j++) {
 			g_Vars.roomcount++;
 		}
 
@@ -1699,7 +1699,7 @@ void bg_build_tables(s32 stagenum)
 
 	mtx00016748(1);
 
-	if (var800a4920 == 0) {
+	if (!g_BgPrimaryDataLoaded) {
 		numportals = 0;
 
 		for (i = 0; g_BgPortals[i].verticesoffset != 0; i++) {
@@ -2795,8 +2795,8 @@ void bg_load_room(s32 roomnum)
 
 		// Calculate the file offset and read length
 		// of the compressed room data in the BG file
-		readlen = ((g_BgRooms[roomnum + 1].unk00 - g_BgRooms[roomnum].unk00) + 0xf) & ~0xf;
-		fileoffset = (g_BgPrimaryData + g_BgRooms[roomnum].unk00 - g_BgPrimaryData) - 0x0f000000;
+		readlen = ((g_BgRooms[roomnum + 1].roomoffset - g_BgRooms[roomnum].roomoffset) + 0xf) & ~0xf;
+		fileoffset = (g_BgPrimaryData + g_BgRooms[roomnum].roomoffset - g_BgPrimaryData) - 0x0f000000;
 		fileoffset -= var8007fc54;
 
 		if (readlen > alloclen) {
@@ -2815,25 +2815,25 @@ void bg_load_room(s32 roomnum)
 		}
 
 		// Inflate the data to the left side of the allocation
-		inflatedlen = bg_inflate(memaddr, allocation, g_BgRooms[roomnum + 1].unk00 - g_BgRooms[roomnum].unk00);
+		inflatedlen = bg_inflate(memaddr, allocation, g_BgRooms[roomnum + 1].roomoffset - g_BgRooms[roomnum].roomoffset);
 
 		g_Rooms[roomnum].gfxdata = (struct roomgfxdata *)allocation;
 
 		// Promote offsets to pointers in the gfxdata header
 		if (g_Rooms[roomnum].gfxdata->vertices) {
-			g_Rooms[roomnum].gfxdata->vertices = (Vtx *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->vertices - g_BgRooms[roomnum].unk00));
+			g_Rooms[roomnum].gfxdata->vertices = (Vtx *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->vertices - g_BgRooms[roomnum].roomoffset));
 		}
 
 		if (g_Rooms[roomnum].gfxdata->colours) {
-			g_Rooms[roomnum].gfxdata->colours = (Col *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->colours - g_BgRooms[roomnum].unk00));
+			g_Rooms[roomnum].gfxdata->colours = (Col *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->colours - g_BgRooms[roomnum].roomoffset));
 		}
 
 		if (g_Rooms[roomnum].gfxdata->opablocks) {
-			g_Rooms[roomnum].gfxdata->opablocks = (struct roomblock *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->opablocks - g_BgRooms[roomnum].unk00));
+			g_Rooms[roomnum].gfxdata->opablocks = (struct roomblock *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->opablocks - g_BgRooms[roomnum].roomoffset));
 		}
 
 		if (g_Rooms[roomnum].gfxdata->xlublocks) {
-			g_Rooms[roomnum].gfxdata->xlublocks = (struct roomblock *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->xlublocks - g_BgRooms[roomnum].unk00));
+			g_Rooms[roomnum].gfxdata->xlublocks = (struct roomblock *) (allocation + ((uintptr_t) g_Rooms[roomnum].gfxdata->xlublocks - g_BgRooms[roomnum].roomoffset));
 		}
 
 		// Promote offsets to pointers in each gfxdata block
@@ -2843,30 +2843,30 @@ void bg_load_room(s32 roomnum)
 			switch (block1->type) {
 			case ROOMBLOCKTYPE_LEAF:
 				if (block1->next != NULL) {
-					block1->next = (struct roomblock *) (allocation + ((uintptr_t) block1->next - g_BgRooms[roomnum].unk00));
+					block1->next = (struct roomblock *) (allocation + ((uintptr_t) block1->next - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->gdl != 0) {
-					block1->gdl = (Gfx *) (allocation + ((uintptr_t) block1->gdl - g_BgRooms[roomnum].unk00));
+					block1->gdl = (Gfx *) (allocation + ((uintptr_t) block1->gdl - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->vertices != 0) {
-					block1->vertices = (Vtx *) (allocation + ((uintptr_t) block1->vertices - g_BgRooms[roomnum].unk00));
+					block1->vertices = (Vtx *) (allocation + ((uintptr_t) block1->vertices - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->colours != 0) {
-					block1->colours = (Col *) (allocation + ((uintptr_t) block1->colours - g_BgRooms[roomnum].unk00));
+					block1->colours = (Col *) (allocation + ((uintptr_t) block1->colours - g_BgRooms[roomnum].roomoffset));
 				}
 				break;
 			case ROOMBLOCKTYPE_PARENT:
 				if (block1->next != NULL) {
-					block1->next = (struct roomblock *) (allocation + ((uintptr_t) block1->next - g_BgRooms[roomnum].unk00));
+					block1->next = (struct roomblock *) (allocation + ((uintptr_t) block1->next - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->gdl != 0) {
-					block1->gdl = (Gfx *) (allocation + ((uintptr_t) block1->gdl - g_BgRooms[roomnum].unk00));
+					block1->gdl = (Gfx *) (allocation + ((uintptr_t) block1->gdl - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->vertices != 0) {
-					block1->vertices = (Vtx *) (allocation + ((uintptr_t) block1->vertices - g_BgRooms[roomnum].unk00));
+					block1->vertices = (Vtx *) (allocation + ((uintptr_t) block1->vertices - g_BgRooms[roomnum].roomoffset));
 				}
 				if (block1->colours != 0) {
-					block1->colours = (Col *) (allocation + ((uintptr_t) block1->colours - g_BgRooms[roomnum].unk00));
+					block1->colours = (Col *) (allocation + ((uintptr_t) block1->colours - g_BgRooms[roomnum].roomoffset));
 				}
 				if ((uintptr_t) block1->vertices < end1) {
 					end1 = (uintptr_t) block1->vertices;

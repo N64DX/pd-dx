@@ -5073,7 +5073,9 @@ struct shieldhit {
 };
 
 struct bgroom {
-	u32 unk00;
+	// Offset to compressed room gfx data at the end of primary bg data section 1.
+	// The pointers in roomgfxdata are also offset by this value.
+	u32 roomoffset;
 	struct coord pos;
 	u8 br_light_min;
 	u8 br_light_max;
